@@ -17,7 +17,7 @@ const uploadMiddleware = multer({ dest: 'uploads/' });
 
 /* --------------------  MIDDLEWARES  -------------------- */
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'https://frontendblog-pbpt.onrender.com'],
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true,
 }));

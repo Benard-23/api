@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
 
-/* --------------------  DATABASE  -------------------- */
+/* --------------------  DATABfASE  -------------------- */
 mongoose.connect(
   'mongodb+srv://collinsadamfred9_db_user:CJvt2fuxXYBpU0sa@cluster0.tzngfw4.mongodb.net/myblog?retryWrites=true&w=majority&appName=Cluster0'
 ).then(()=>console.log('✅ MongoDB Connected'))

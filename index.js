@@ -4,6 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Post = require('./models/Post');
+const Comment = require('./models/Comment'); // ✅ NEW
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -25,7 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
 
-/* --------------------  DATABfASE  -------------------- */
+/* --------------------  DATABASE  -------------------- */
 mongoose.connect(
   'mongodb+srv://collinsadamfred9_db_user:CJvt2fuxXYBpU0sa@cluster0.tzngfw4.mongodb.net/myblog?retryWrites=true&w=majority&appName=Cluster0'
 ).then(()=>console.log('✅ MongoDB Connected'))
@@ -64,7 +65,7 @@ app.post('/register', async (req,res)=>{
   }
 });
 
-// Login  (token valid for 7 days for dev convenience)
+// Login
 app.post('/login', async (req,res)=>{
   const { username, password } = req.body;
   const userDoc = await User.findOne({ username });
@@ -171,6 +172,56 @@ app.get('/post/:id', async (req,res)=>{
   }
 });
 
+/* --------------------  COMMENTS  -------------------- */
+
+// ✅ Create a new comment
+app.post('/comments', verifyToken, async (req, res) => {
+  try {
+    const { postId, content } = req.body;
+    if (!content || !postId)
+      return res.status(400).json({ error: 'Post ID and content are required' });
+
+    const commentDoc = await Comment.create({
+      post: postId,
+      author: req.user.id,
+      content,
+    });
+
+    res.json({
+      message: '✅ Comment added successfully',
+      comment: commentDoc,
+    });
+  } catch (err) {
+    console.error('Comment create error:', err);
+    res.status(500).json({ error: 'Failed to add comment' });
+  }
+});
+
+// ✅ Fetch recent comments
+app.get('/comments', async (req, res) => {
+  try {
+    const comments = await Comment.find()
+      .populate('author', 'username')
+      .populate('post', 'title')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const formatted = comments.map(c => ({
+      id: c._id,
+      author: c.author?.username || 'Anonymous',
+      postTitle: c.post?.title || 'Untitled Post',
+      createdAt: c.createdAt,
+      content: c.content,
+    }));
+
+    res.json(formatted);
+  } catch (err) {
+    console.error('Fetch comments error:', err);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
 /* --------------------  START  -------------------- */
 const PORT = 4000;
 app.listen(PORT, ()=>console.log(`✅ Server running on http://localhost:${PORT}`));
+
